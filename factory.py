@@ -75,10 +75,38 @@ def barabasi_albert_graph(n, m, seed=None):
     addInfectionToGraph(G)
     return G
 
-def addInfectionToGraph(G):
-    for x in range(len(G.nodes())):
-        G.node[x]['infected'] = 0 #randint(0,1)
         
 
+def setInfection(G,nodeID,value):
+    G.node[nodeID]['infected'] = value
     
+def infectNode(G,nodeID):
+    setInfection(G,nodeID,True)
+    
+def healNode(G,nodeID):
+    setInfection(G,nodeID,False)
 
+
+def addInfectionToGraph(G):
+    for x in range(len(G.nodes())):
+        healNode(G,x)
+        
+def minimal_graph(n):
+    if(n<=2):
+        raise nx.NetworkXError("minimal network must have n>2")
+    else:
+        random.seed()
+        G=complete_graph(2)
+    
+        nodeID=2
+        while nodeID<n:
+            G.add_node(nodeID)
+            edges=G.edges()
+            chosenOnes=random.choice(edges)
+            G.add_edge(nodeID,chosenOnes[0])
+            G.add_edge(nodeID,chosenOnes[1])
+            nodeID+=1        
+        
+    return G
+    
+        
