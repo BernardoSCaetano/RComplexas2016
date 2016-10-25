@@ -2,6 +2,9 @@ from networkx import *
 from random import randint
 
 import random 
+import numpy
+
+globalBAedges=3
 
 def _random_subset(seq,m):
     """ Return m unique elements from seq.
@@ -109,4 +112,67 @@ def minimal_graph(n):
         
     return G
     
+        
+def evalGraph(graph):
+    
+    #iterates over 1000 trials, choose a node at random, choose two of its neighbors at random, and check if they are connected
+    clustCoef = average_clustering(graph) #TODO use average_clustering or clustering function?
+    
+    #degree centrality for a node v is the fraction of nodes it is connected to
+    #degreeCentrality=degree_centrality(graph)
+    
+    
+    diametro = diameter(graph)
+                     
+    avgspl = average_shortest_path_length(graph) #TODO same question avg or function
+    #Careful with disconnected graphs
+    
+    dictionary = dict([('cc', clustCoef), ('diameter', diametro), ('avgSPL', avgspl)])
+    
+    return dictionary
+
+def createGraph(graphType,nodesNr):
+    if graphType == 'minimal':
+        return minimal_graph(nodesNr)
+    if graphType == 'barabasi-albert':
+        return barabasi_albert_graph(nodesNr,globalBAedges)
+
+        
+def experimentation(graphType,numberOfGraphs,numberOfNodes):
+    i=0
+    finalDict = dict([('cc',0), ('diameter', 0), ('avgSPL', 0)])
+    
+    while i < numberOfGraphs:
+        graph = createGraph(graphType,numberOfNodes)
+        newDict = evalGraph(graph)
+        
+        newClustCoef = newDict['cc']
+        newDiametro = newDict['diameter']
+        newAvgspl = newDict['avgSPL']
+        
+        oldClustCoef = finalDict['cc']
+        oldDiametro = finalDict['diameter']
+        oldAvgspl = finalDict['avgSPL']
+        
+        sumClustCoef = newClustCoef + oldClustCoef
+        sumDiametro = newDiametro + oldDiametro
+        sumAvgspl =  newAvgspl +  oldAvgspl 
+        
+        finalDict['cc'] = sumClustCoef
+        finalDict['diameter'] = sumDiametro
+        finalDict['avgSPL'] = sumAvgspl
+        
+        i=i+1
+        
+    if finalDict['cc'] != 0:
+        finalDict['cc'] = finalDict['cc']/numberOfGraphs
+        
+    if finalDict['diameter'] != 0:
+        finalDict['diameter'] = finalDict['diameter']/numberOfGraphs
+        
+    if finalDict['avgSPL'] != 0:
+        finalDict['avgSPL'] = finalDict['avgSPL']/numberOfGraphs
+
+    
+    print "AVERAGES::\nClustering coefficient: %f\nDiameter: %f\nAvgShortestPathLength: %f"%(finalDict['cc'],finalDict['diameter'],finalDict['avgSPL'])
         
