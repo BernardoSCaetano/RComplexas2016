@@ -3,6 +3,7 @@ from random import randint
 
 import random 
 import numpy
+import matplotlib.pyplot as plt
 
 globalBAedges=3
 
@@ -122,12 +123,12 @@ def evalGraph(graph):
     #degreeCentrality=degree_centrality(graph)
     
     
-    diametro = diameter(graph)
-                     
-    avgspl = average_shortest_path_length(graph) #TODO same question avg or function
+    #diametro = diameter(graph)                
+    #avgspl = average_shortest_path_length(graph) #TODO same question avg or function
+   
     #Careful with disconnected graphs
     
-    dictionary = dict([('cc', clustCoef), ('diameter', diametro), ('avgSPL', avgspl)])
+    dictionary = dict([('cc', clustCoef), ('diameter', 0), ('avgSPL', 0)])
     
     return dictionary
 
@@ -138,6 +139,30 @@ def createGraph(graphType,nodesNr):
         return barabasi_albert_graph(nodesNr,globalBAedges)
 
         
+def clusterCoefByDegreeLogLog(graph):
+    graus=degree(graph)
+    coefs=clustering(graph)
+    
+    graphic=plt.plot(graus.values(),coefs.values(), 'ro')
+    plt.ylabel('log C(k)')
+    plt.xlabel('log k')
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.show()
+    
+    
+def clusterCoefByDegree(graph):
+    graus=degree(graph)
+    coefs=clustering(graph)
+    
+    graphic=plt.plot(graus.values(),coefs.values(), 'ro')
+    plt.ylabel('C(k)')
+    plt.xlabel('k')
+    
+    plt.show()    
+    
+    
+    
 def experimentation(graphType,numberOfGraphs,numberOfNodes):
     i=0
     finalDict = dict([('cc',0), ('diameter', 0), ('avgSPL', 0)])
@@ -175,4 +200,26 @@ def experimentation(graphType,numberOfGraphs,numberOfNodes):
 
     
     print "AVERAGES::\nClustering coefficient: %f\nDiameter: %f\nAvgShortestPathLength: %f"%(finalDict['cc'],finalDict['diameter'],finalDict['avgSPL'])
+    
+    return [finalDict['cc'],finalDict['diameter'],finalDict['avgSPL']]
         
+def main():
+    ccs=[]
+    diameters=[]
+    avgSPLs=[]
+    
+    #clusterCoefByDegreeLogLog(createGraph('minimal',100))
+    #clusterCoefByDegreeLogLog(createGraph('minimal',1000))
+    #clusterCoefByDegreeLogLog(createGraph('minimal',10000))
+
+        
+        #diameters.extend(experimentation('minimal',10,100)[1])
+        #avgSPLs.extend(experimentation('minimal',10,100)[1])
+        
+    
+
+main()
+
+#cc_by_node[0.7265637348008186, 0.7365163316339398, 0.7359093143372706, 0.7358060601107528, 0.7402482954234243, 0.7354239628654052, 0.7350685263852069, 0.7378760587088745, 0.7346786156776204, 0.7390508706152371, 0.7367485248779614, 0.7388354161471171, 0.7376105016939264, 0.7396181868942342, 0.738036211678682, 0.7380555784813824, 0.7393140437301213, 0.7383356255055944, 0.7370154626660501, 0.7384302696892411, 0.7387004232057347, 0.7384176587694157, 0.7380755343022549, 0.7383797304451774, 0.7377326878099811, 0.7390769433793558, 0.7389729130056194, 0.7395671400080576, 0.7385502870518751, 0.7401749713501835]
+
+#nodes=(100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000)
