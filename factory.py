@@ -149,9 +149,19 @@ def startRandomInfection(graph):
     nodes=graph.nodes()
     patientZero=random.choice(nodes)
     infectNode(graph,patientZero)
-    print patientZero
     return graph
+
+def getInfectedNodes(graph):
+    dictionary=get_node_attributes(graph,'infected')
+    infectedNodes=list()
+    for k,v in dictionary.iteritems():
+        if v == True:
+            infectedNodes.append(k)
+    return infectedNodes
         
+#def spreadInfection(graph,rate):
+    #infectedNodes=
+    #for all_neighbours(graphs)
 def main1():
     ccs=[]
     diameters=[]
