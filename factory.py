@@ -6,11 +6,17 @@ import numpy
 import matplotlib.pyplot as plt
 
 globalBAedges=3
+globalProb=0.5
 
 def our_barabasi_albert_graph(n, m):
     G = barabasi_albert_graph(n,m)
     addInfectionToGraph(G)
     return G        
+
+def our_erdos_renyi_graph(n,p):
+    G = erdos_renyi_graph(n,p)
+    addInfectionToGraph(G)
+    return G
 
 def setInfection(G,nodeID,value):
     G.node[nodeID]['infected'] = value
@@ -68,6 +74,8 @@ def createGraph(graphType,nodesNr):
         return minimal_graph(nodesNr)
     if graphType == 'barabasi-albert':
         return our_barabasi_albert_graph(nodesNr,globalBAedges)
+    if graphType == 'erdos-renyi':
+        return our_erdos_renyi_graph(nodesNr,globalProb)
 
         
 def clusterCoefByDegreeLogLog(graph):
@@ -134,7 +142,17 @@ def experimentation(graphType,numberOfGraphs,numberOfNodes):
     
     return [finalDict['cc'],finalDict['diameter'],finalDict['avgSPL']]
         
-def main():
+
+
+
+def startRandomInfection(graph):
+    nodes=graph.nodes()
+    patientZero=random.choice(nodes)
+    infectNode(graph,patientZero)
+    print patientZero
+    return graph
+        
+def main1():
     ccs=[]
     diameters=[]
     avgSPLs=[]
@@ -149,7 +167,17 @@ def main():
         
     
 
-main()
+
+    
+
+def main2():
+    print "hi"
+   
+
+
+
+
+main2()
 
 #cc_by_node[0.7265637348008186, 0.7365163316339398, 0.7359093143372706, 0.7358060601107528, 0.7402482954234243, 0.7354239628654052, 0.7350685263852069, 0.7378760587088745, 0.7346786156776204, 0.7390508706152371, 0.7367485248779614, 0.7388354161471171, 0.7376105016939264, 0.7396181868942342, 0.738036211678682, 0.7380555784813824, 0.7393140437301213, 0.7383356255055944, 0.7370154626660501, 0.7384302696892411, 0.7387004232057347, 0.7384176587694157, 0.7380755343022549, 0.7383797304451774, 0.7377326878099811, 0.7390769433793558, 0.7389729130056194, 0.7395671400080576, 0.7385502870518751, 0.7401749713501835]
 
