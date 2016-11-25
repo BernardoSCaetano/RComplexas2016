@@ -10,12 +10,12 @@ globalProb=0.5
 
 def our_barabasi_albert_graph(n, m):
     G = barabasi_albert_graph(n,m)
-    addInfectionToGraph(G)
+    addInfectionAttributeToGraph(G)
     return G        
 
 def our_erdos_renyi_graph(n,p):
     G = erdos_renyi_graph(n,p)
-    addInfectionToGraph(G)
+    addInfectionAttributeToGraph(G)
     return G
 
 def setInfection(G,nodeID,value):
@@ -28,7 +28,7 @@ def healNode(G,nodeID):
     setInfection(G,nodeID,False)
 
 
-def addInfectionToGraph(G):
+def addInfectionAttributeToGraph(G):
     for x in range(len(G.nodes())):
         healNode(G,x)
         
@@ -69,13 +69,7 @@ def evalGraph(graph):
     
     return dictionary
 
-def createGraph(graphType,nodesNr):
-    if graphType == 'minimal':
-        return minimal_graph(nodesNr)
-    if graphType == 'barabasi-albert':
-        return our_barabasi_albert_graph(nodesNr,globalBAedges)
-    if graphType == 'erdos-renyi':
-        return our_erdos_renyi_graph(nodesNr,globalProb)
+
 
         
 def clusterCoefByDegreeLogLog(graph):
@@ -141,27 +135,44 @@ def experimentation(graphType,numberOfGraphs,numberOfNodes):
     print "AVERAGES::\nClustering coefficient: %f\nDiameter: %f\nAvgShortestPathLength: %f"%(finalDict['cc'],finalDict['diameter'],finalDict['avgSPL'])
     
     return [finalDict['cc'],finalDict['diameter'],finalDict['avgSPL']]
+ 
         
+def createGraph(graphType,nodesNr):
+    if graphType == 'minimal':
+        return minimal_graph(nodesNr)
+    if graphType == 'barabasi-albert':
+        return our_barabasi_albert_graph(nodesNr,globalBAedges)
+    if graphType == 'erdos-renyi':
+        return our_erdos_renyi_graph(nodesNr,globalProb)
 
-
-
+#given a graph, returns a graph with 1 infected node
 def startRandomInfection(graph):
-    nodes=graph.nodes()
-    patientZero=random.choice(nodes)
+    nodes = graph.nodes()
+    patientZero = random.choice(nodes)
     infectNode(graph,patientZero)
     return graph
 
+
+#given a graph, returns a list with the ids of infected nodes
 def getInfectedNodes(graph):
-    dictionary=get_node_attributes(graph,'infected')
-    infectedNodes=list()
+    dictionary = get_node_attributes(graph,'infected')
+    infectedNodes = list()
     for k,v in dictionary.iteritems():
         if v == True:
             infectedNodes.append(k)
     return infectedNodes
         
-#def spreadInfection(graph,rate):
-    #infectedNodes=
-    #for all_neighbours(graphs)
+#calculates graph of disease for instant t+1
+def spreadInfectionSI(graph,rate):
+    infectedNodes = getInfectedNodes(graph)
+    for nodeNr in infectedNodes:
+        for neighbour in all_neighbors(graph,nodeNr):
+            randomNr = random.uniform(0,1)
+            if randomNr<rate:
+                setInfection(graph,neighbour,True)
+    return graph
+                
+                
 def main1():
     ccs=[]
     diameters=[]
@@ -180,14 +191,15 @@ def main1():
 
     
 
-def main2():
-    print "hi"
-   
+def testOneStepSI():
+    G = createGraph('erdos-renyi',7)
+    startRandomInfection(G)
+    print "patient zero: " + str(getInfectedNodes(G))
+    print "edges: " + str(G.edges())
+    spreadInfectionSI(G,1) #testing with rate = 1
+    print "after infection: "+str(getInfectedNodes(G))    
 
-
-
-
-main2()
+testOneStepSI()
 
 #cc_by_node[0.7265637348008186, 0.7365163316339398, 0.7359093143372706, 0.7358060601107528, 0.7402482954234243, 0.7354239628654052, 0.7350685263852069, 0.7378760587088745, 0.7346786156776204, 0.7390508706152371, 0.7367485248779614, 0.7388354161471171, 0.7376105016939264, 0.7396181868942342, 0.738036211678682, 0.7380555784813824, 0.7393140437301213, 0.7383356255055944, 0.7370154626660501, 0.7384302696892411, 0.7387004232057347, 0.7384176587694157, 0.7380755343022549, 0.7383797304451774, 0.7377326878099811, 0.7390769433793558, 0.7389729130056194, 0.7395671400080576, 0.7385502870518751, 0.7401749713501835]
 
