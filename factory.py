@@ -162,14 +162,31 @@ def getInfectedNodes(graph):
             infectedNodes.append(k)
     return infectedNodes
         
-#calculates graph of disease for instant t+1
-def spreadInfectionSI(graph,rate):
+#calculates graph of disease for instant t+1 using SI model
+def spreadInfectionSI(graph,TransmissionRate):
     infectedNodes = getInfectedNodes(graph)
     for nodeNr in infectedNodes:
         for neighbour in all_neighbors(graph,nodeNr):
             randomNr = random.uniform(0,1)
-            if randomNr<rate:
-                setInfection(graph,neighbour,True)
+            if randomNr < TransmissionRate:
+                infectNode(graph,neighbour)
+    return graph
+
+
+
+#calculates graph of disease for instant t+1 using SIS model
+def spreadInfectionSIS(graph,TransmissionRate,RecoveryRate):
+    infectedNodes = getInfectedNodes(graph)
+    for nodeNr in infectedNodes:
+        for neighbour in all_neighbors(graph,nodeNr):
+            randomNr1 = random.uniform(0,1)
+            if randomNr1 < TransmissionRate:
+                infectNode(graph,neighbour)
+            
+        randomNr2 = random.uniform(0,1)
+        if randomNr2 < RecoveryRate:
+            healNode(graph,nodeNr)
+            
     return graph
                 
                 
@@ -185,10 +202,15 @@ def main1():
         
         #diameters.extend(experimentation('minimal',10,100)[1])
         #avgSPLs.extend(experimentation('minimal',10,100)[1])
-        
-    
 
 
+def testOneStepSIS():
+    G = createGraph('erdos-renyi',7)
+    startRandomInfection(G)
+    print "patient zero: " + str(getInfectedNodes(G))
+    print "edges: " + str(G.edges())
+    spreadInfectionSIS(G,1,1) #testing with rate = 1
+    print "after infection: "+str(getInfectedNodes(G))          
     
 
 def testOneStepSI():
@@ -199,7 +221,7 @@ def testOneStepSI():
     spreadInfectionSI(G,1) #testing with rate = 1
     print "after infection: "+str(getInfectedNodes(G))    
 
-testOneStepSI()
+testOneStepSIS()
 
 #cc_by_node[0.7265637348008186, 0.7365163316339398, 0.7359093143372706, 0.7358060601107528, 0.7402482954234243, 0.7354239628654052, 0.7350685263852069, 0.7378760587088745, 0.7346786156776204, 0.7390508706152371, 0.7367485248779614, 0.7388354161471171, 0.7376105016939264, 0.7396181868942342, 0.738036211678682, 0.7380555784813824, 0.7393140437301213, 0.7383356255055944, 0.7370154626660501, 0.7384302696892411, 0.7387004232057347, 0.7384176587694157, 0.7380755343022549, 0.7383797304451774, 0.7377326878099811, 0.7390769433793558, 0.7389729130056194, 0.7395671400080576, 0.7385502870518751, 0.7401749713501835]
 
