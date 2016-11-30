@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 globalBAedges = 3
 globalProb = 0.1
 EQUILIBRIUM = 0.05
+EXPERIENCESNR = 10
+GLOBALRATES = [0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5,0.6,0.7]
+
 
 def our_barabasi_albert_graph(n, m):
     G = barabasi_albert_graph(n,m)
@@ -212,7 +215,8 @@ def spreadInfectionSIS(graph,TransmissionRate,RecoveryRate):
         
     return graph
                 
-
+                
+#returns the fraction of infected nodes, given a graph
 def getFractionOfInfected(graph):
     numberOfNodes=len(graph.nodes())
     numberOfInfected=len(getInfectedNodes(graph))
@@ -220,29 +224,28 @@ def getFractionOfInfected(graph):
     return float(numberOfInfected)/numberOfNodes
     
     
+#True if 2 numbers are close    
 def areNumbersClose(n,m):
     if abs(n-m) < EQUILIBRIUM:
         return True
     return False
 
+
+#True if the n-last elements of lista are close to the first one in the list
 def hasStabilized(lista,n):
-    
     if len(lista) <= n:
         return False
-
-    lista=lista[-n:]
     
+    lista=lista[-n:]
     for elem in lista[1:]:
         if not(areNumbersClose(lista[0],elem)):
-            return False
-                
+            return False     
     return True
    
    
 #returns the average fraction of infected after the spreading stabilizes    
 def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
     G = createGraph(graph_model,1000)
-    
     
     infectedFractions = list()
     infectedFractions.append(0) 
@@ -258,6 +261,8 @@ def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
         infectedFractions.append(getFractionOfInfected(G))
         timeline.append(t)
         t=t+1
+        if t > 800:
+            break
     
     last100 = infectedFractions[-100:]
     averageInfected = numpy.mean(last100)
@@ -266,21 +271,25 @@ def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
     infectedFractions = infectedFractions[:-100]
     infectedFractions.append(averageInfected)
     
-    
     #graphic=plt.plot(timeline[:-99],infectedFractions, 'ro')
     #plt.ylabel('Infected Fraction')
     #plt.xlabel('t')    
     #plt.show()
-    
     return averageInfected
 
-def collapses(lista,n):
-    lista=lista[-n:]
-    for elem in lista:
-        if elem != 0:
-            return False
-    return True
+
+def guessBetween(n,m):
+    return round(random.uniform(n,m),4)
+
+
+#True if the number is really close to 0
+def collapses(n):
+    if round(n,3)<=0.001:
+        return True
+    return False
     
+    
+#deprecated
 def calculateTimeRequired():
     G = createGraph('minimal',100)
     G = startRandomInfection(G)
@@ -302,7 +311,9 @@ def calculateTimeRequired():
     print index
     print sizes
     print sizes[99]
-    
+   
+   
+#deprecated    
 def main1():
     ccs=[]
     diameters=[]
@@ -335,14 +346,15 @@ def testOneStepSI():
     print "after one step infection: "+str(getInfectedNodes(G))    
 
 
+#returns a pair of lists, cointaining the rates and the experimental(experienceNR times) fraction of infected for each rate
 def infectedFractionByTransmissionRate(graph_model):
-    rates=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+    rates=GLOBALRATES
     fractionByRate=list()
     averages=list()
     experiments=0
     
     for rate in rates:       
-        while experiments < 5:
+        while experiments < EXPERIENCESNR:
             experiments=experiments+1
             averages.append(fractionInfectedAfterStabilizing(graph_model,rate))
             pointInPlot=numpy.mean(averages)
@@ -350,12 +362,38 @@ def infectedFractionByTransmissionRate(graph_model):
         fractionByRate.append(pointInPlot)
         experiments=0
         averages=[]
-        print "calculated for: "+str(rate)
+        print "experienced for "+str(EXPERIENCESNR)+ " instances with transmission rate "+ str(rate)
         
-    print fractionByRate
     graphic=plt.plot(rates,fractionByRate, 'ro')
     plt.ylabel('Infected Fraction')
     plt.xlabel('TransmissionRate')    
     plt.show()
+    return rates, fractionByRate
 
-infectedFractionByTransmissionRate('erdos-renyi')
+
+#returns the experimental approximation of the threshold for a given model
+def calcThreshold(graph_model):
+    rates, fractions = infectedFractionByTransmissionRate(graph_model)
+    limsup=0
+    liminf=0
+    
+    for i,fraction in enumerate(fractions):
+        if fraction < 0.1 and fraction > 0.008:
+            limsup=rates[i]
+            break
+    
+    while abs(liminf-limsup) > 0.0005:
+        rateHypothesis = guessBetween(liminf,limsup)
+        fraction = fractionInfectedAfterStabilizing(graph_model,rateHypothesis)
+        if collapses(fraction):
+            liminf=rateHypothesis
+        if not(collapses(fraction)):
+            limsup=rateHypothesis
+        print "[ "+str(liminf)+" , "+str(limsup)+" ]"
+    
+    threshold=float(limsup+liminf)/2
+    print "threshold: "+ str(threshold)
+    return threshold
+        
+    
+calcThreshold('barabasi-albert')
