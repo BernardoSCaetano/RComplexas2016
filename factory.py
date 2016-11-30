@@ -5,8 +5,9 @@ import random
 import numpy
 import matplotlib.pyplot as plt
 
-globalBAedges=3
-globalProb=0.5
+globalBAedges = 3
+globalProb = 0.1
+EQUILIBRIUM = 0.05
 
 def our_barabasi_albert_graph(n, m):
     G = barabasi_albert_graph(n,m)
@@ -179,10 +180,15 @@ def spreadInfectionSI(graph,TransmissionRate):
 
 
 #calculates graph of disease for instant t+1 using SIS model
+#we can optimize: by adding attribute "hasChanged" to each node
+#have to set it to 1, for each node who changes from S->I (or vice versa), on  each run of spreadInfectionSIS 
+#the above removes the 2 "for" loops required to infect/heal the nodes selected
 def spreadInfectionSIS(graph,TransmissionRate,RecoveryRate):
     
-    nodesToInfect=list()
-    nodesToHeal=list()
+    RecoveryRate=1
+    
+    nodesToInfect = list()
+    nodesToHeal = list()
     
     for nodeNr in graph.nodes():
         
@@ -208,16 +214,72 @@ def spreadInfectionSIS(graph,TransmissionRate,RecoveryRate):
                 
 
 def getFractionOfInfected(graph):
-    numberOfNodes=len(G.nodes())
+    numberOfNodes=len(graph.nodes())
     numberOfInfected=len(getInfectedNodes(graph))
     
     return float(numberOfInfected)/numberOfNodes
     
     
 def areNumbersClose(n,m):
-    if abs(n-m) < 0.05:
+    if abs(n-m) < EQUILIBRIUM:
         return True
     return False
+
+def hasStabilized(lista,n):
+    
+    if len(lista) <= n:
+        return False
+
+    lista=lista[-n:]
+    
+    for elem in lista[1:]:
+        if not(areNumbersClose(lista[0],elem)):
+            return False
+                
+    return True
+   
+   
+#returns the average fraction of infected after the spreading stabilizes    
+def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
+    G = createGraph(graph_model,1000)
+    
+    
+    infectedFractions = list()
+    infectedFractions.append(0) 
+    G = startRandomInfection(G)
+    infectedFractions.append(getFractionOfInfected(G))
+    
+    timeline=list()
+    timeline.append(0)
+    timeline.append(1)
+    t=2
+    while not(hasStabilized(infectedFractions,100)):
+        G = spreadInfectionSIS(G,TransmissionRate,1)
+        infectedFractions.append(getFractionOfInfected(G))
+        timeline.append(t)
+        t=t+1
+    
+    last100 = infectedFractions[-100:]
+    averageInfected = numpy.mean(last100)
+    
+    
+    infectedFractions = infectedFractions[:-100]
+    infectedFractions.append(averageInfected)
+    
+    
+    #graphic=plt.plot(timeline[:-99],infectedFractions, 'ro')
+    #plt.ylabel('Infected Fraction')
+    #plt.xlabel('t')    
+    #plt.show()
+    
+    return averageInfected
+
+def collapses(lista,n):
+    lista=lista[-n:]
+    for elem in lista:
+        if elem != 0:
+            return False
+    return True
     
 def calculateTimeRequired():
     G = createGraph('minimal',100)
@@ -273,9 +335,27 @@ def testOneStepSI():
     print "after one step infection: "+str(getInfectedNodes(G))    
 
 
+def infectedFractionByTransmissionRate(graph_model):
+    rates=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+    fractionByRate=list()
+    averages=list()
+    experiments=0
+    
+    for rate in rates:       
+        while experiments < 5:
+            experiments=experiments+1
+            averages.append(fractionInfectedAfterStabilizing(graph_model,rate))
+            pointInPlot=numpy.mean(averages)
+        
+        fractionByRate.append(pointInPlot)
+        experiments=0
+        averages=[]
+        print "calculated for: "+str(rate)
+        
+    print fractionByRate
+    graphic=plt.plot(rates,fractionByRate, 'ro')
+    plt.ylabel('Infected Fraction')
+    plt.xlabel('TransmissionRate')    
+    plt.show()
 
-
-
-#cc_by_node[0.7265637348008186, 0.7365163316339398, 0.7359093143372706, 0.7358060601107528, 0.7402482954234243, 0.7354239628654052, 0.7350685263852069, 0.7378760587088745, 0.7346786156776204, 0.7390508706152371, 0.7367485248779614, 0.7388354161471171, 0.7376105016939264, 0.7396181868942342, 0.738036211678682, 0.7380555784813824, 0.7393140437301213, 0.7383356255055944, 0.7370154626660501, 0.7384302696892411, 0.7387004232057347, 0.7384176587694157, 0.7380755343022549, 0.7383797304451774, 0.7377326878099811, 0.7390769433793558, 0.7389729130056194, 0.7395671400080576, 0.7385502870518751, 0.7401749713501835]
-
-#nodes=(100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000)
+infectedFractionByTransmissionRate('erdos-renyi')
