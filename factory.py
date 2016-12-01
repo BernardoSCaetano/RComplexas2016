@@ -9,7 +9,7 @@ globalBAedges = 3
 globalProb = 0.1
 EQUILIBRIUM = 0.05
 EXPERIENCESNR = 10
-GLOBALRATES = [0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5,0.6,0.7]
+GLOBALRATES = [0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5]
 
 
 def our_barabasi_albert_graph(n, m):
@@ -103,6 +103,20 @@ def clusterCoefByDegree(graph):
     plt.show()    
     
     
+#deprecated    
+def main1():
+    ccs=[]
+    diameters=[]
+    avgSPLs=[]
+    
+    #clusterCoefByDegreeLogLog(createGraph('minimal',100))
+    #clusterCoefByDegreeLogLog(createGraph('minimal',1000))
+    #clusterCoefByDegreeLogLog(createGraph('minimal',10000))
+
+        
+        #diameters.extend(experimentation('minimal',10,100)[1])
+        #avgSPLs.extend(experimentation('minimal',10,100)[1])
+    
     
 def experimentation(graphType,numberOfGraphs,numberOfNodes):
     i=0
@@ -153,6 +167,13 @@ def createGraph(graphType,nodesNr):
     if graphType == 'erdos-renyi':
         return our_erdos_renyi_graph(nodesNr,globalProb)
 
+
+
+#------------------------------------2nd Part---------------------------------
+
+
+
+
 #given a graph, returns a graph with 1 infected node
 def startRandomInfection(graph):
     nodes = graph.nodes()
@@ -185,7 +206,7 @@ def spreadInfectionSI(graph,TransmissionRate):
 #calculates graph of disease for instant t+1 using SIS model
 #we can optimize: by adding attribute "hasChanged" to each node
 #have to set it to 1, for each node who changes from S->I (or vice versa), on  each run of spreadInfectionSIS 
-#the above removes the 2 "for" loops required to infect/heal the nodes selected
+#the optimization above removes the 2 "for" loops required to infect/heal the nodes selected
 def spreadInfectionSIS(graph,TransmissionRate,RecoveryRate):
     
     RecoveryRate=1
@@ -193,8 +214,9 @@ def spreadInfectionSIS(graph,TransmissionRate,RecoveryRate):
     nodesToInfect = list()
     nodesToHeal = list()
     
+    
     for nodeNr in graph.nodes():
-        
+                
         if not(isInfected(graph,nodeNr)):
             for neighbour in all_neighbors(graph,nodeNr):
                 if isInfected(graph,neighbour):
@@ -220,7 +242,6 @@ def spreadInfectionSIS(graph,TransmissionRate,RecoveryRate):
 def getFractionOfInfected(graph):
     numberOfNodes=len(graph.nodes())
     numberOfInfected=len(getInfectedNodes(graph))
-    
     return float(numberOfInfected)/numberOfNodes
     
     
@@ -258,10 +279,13 @@ def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
     t=2
     while not(hasStabilized(infectedFractions,100)):
         G = spreadInfectionSIS(G,TransmissionRate,1)
-        infectedFractions.append(getFractionOfInfected(G))
+        fraction = getFractionOfInfected(G)
+        infectedFractions.append(fraction)
         timeline.append(t)
+        if fraction == 0:
+            break
         t=t+1
-        if t > 800:
+        if t > 700:
             break
     
     last100 = infectedFractions[-100:]
@@ -278,8 +302,8 @@ def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
     return averageInfected
 
 
-def guessBetween(n,m):
-    return round(random.uniform(n,m),4)
+def numberBetween(n,m):
+    return float(n+m)/2
 
 
 #True if the number is really close to 0
@@ -287,47 +311,11 @@ def collapses(n):
     if round(n,3)<=0.001:
         return True
     return False
-    
-    
-#deprecated
-def calculateTimeRequired():
-    G = createGraph('minimal',100)
-    G = startRandomInfection(G)
-    i=0
-    sizes=list()
-    while(i<100):
-        i=i+1
-        size = len(getInfectedNodes(G))
-        sizes.append(size)
-        G = spreadInfectionSIS(G,0.5,0.5)    
-        
-    average = numpy.mean(sizes)
-    
-    for index,elem in enumerate(sizes):#sorted?
-        if abs(elem-average)<3:
-            firstIndex = index
-    
-    print average
-    print index
-    print sizes
-    print sizes[99]
    
    
-#deprecated    
-def main1():
-    ccs=[]
-    diameters=[]
-    avgSPLs=[]
-    
-    #clusterCoefByDegreeLogLog(createGraph('minimal',100))
-    #clusterCoefByDegreeLogLog(createGraph('minimal',1000))
-    #clusterCoefByDegreeLogLog(createGraph('minimal',10000))
-
-        
-        #diameters.extend(experimentation('minimal',10,100)[1])
-        #avgSPLs.extend(experimentation('minimal',10,100)[1])
 
 
+#function to test
 def testOneStepSIS():
     G = createGraph('erdos-renyi',10)
     startRandomInfection(G)
@@ -336,7 +324,7 @@ def testOneStepSIS():
     spreadInfectionSIS(G,1,1) #testing with rate = 1
     print "after one step infection: "+str(getInfectedNodes(G))          
     
-
+#function to test
 def testOneStepSI():
     G = createGraph('erdos-renyi',10)
     startRandomInfection(G)
@@ -381,19 +369,29 @@ def calcThreshold(graph_model):
         if fraction < 0.1 and fraction > 0.008:
             limsup=rates[i]
             break
-    
-    while abs(liminf-limsup) > 0.0005:
-        rateHypothesis = guessBetween(liminf,limsup)
-        fraction = fractionInfectedAfterStabilizing(graph_model,rateHypothesis)
-        if collapses(fraction):
-            liminf=rateHypothesis
-        if not(collapses(fraction)):
-            limsup=rateHypothesis
-        print "[ "+str(liminf)+" , "+str(limsup)+" ]"
-    
-    threshold=float(limsup+liminf)/2
-    print "threshold: "+ str(threshold)
-    return threshold
+        
+    exp=0
+    thresholds=list()
+    while exp < EXPERIENCESNR:
+        exp=exp+1
+        while abs(liminf-limsup) > 0.0005:
+            rateHypothesis = numberBetween(liminf,limsup)
+            fraction = fractionInfectedAfterStabilizing(graph_model,rateHypothesis)
+            if collapses(fraction):
+                liminf=rateHypothesis
+            if not(collapses(fraction)):
+                limsup=rateHypothesis
+            print "[ "+str(liminf)+" , "+str(limsup)+" ]"
+        
+        threshold=float(limsup+liminf)/2
+        print "threshold: "+ str(threshold)
+        thresholds.append(round(threshold,4))
+        limsup=rates[i]
+        liminf=0
+        
+    finalThreshold = round(numpy.mean(thresholds),4)
+    print finalThreshold
+    return finalThreshold
         
     
-calcThreshold('barabasi-albert')
+calcThreshold('minimal')
