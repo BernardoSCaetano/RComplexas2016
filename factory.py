@@ -285,7 +285,7 @@ def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
     timeline.append(0)
     timeline.append(1)
     t=2
-    while not(hasStabilized(infectedFractions,100)):
+    while not(hasStabilized(infectedFractions,150)):
         G = spreadInfectionSIS(G,TransmissionRate,1)
         fraction = getFractionOfInfected(G)
         infectedFractions.append(fraction)
@@ -296,14 +296,16 @@ def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
         if t > 700:
             break
     
-    last100 = infectedFractions[-100:]
-    averageInfected = numpy.mean(last100)
+    last150 = infectedFractions[-150:]
+    averageInfected = numpy.mean(last150)
     
     
-    infectedFractions = infectedFractions[:-100]
+    infectedFractions = infectedFractions[:-150]
     infectedFractions.append(averageInfected)
     
-    #graphic=plt.plot(timeline[:-99],infectedFractions, 'ro')
+    
+    
+    #graphic=plt.plot(timeline[:-149],infectedFractions, 'ro')
     #plt.ylabel('Infected Fraction')
     #plt.xlabel('t')    
     #plt.show()
