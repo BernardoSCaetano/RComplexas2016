@@ -4,6 +4,7 @@ from random import randint
 import random 
 import numpy
 import matplotlib.pyplot as plt
+import math
 
 globalBAedges = 3
 globalProb = 0.1
@@ -11,6 +12,12 @@ EQUILIBRIUM = 0.05
 EXPERIENCESNR = 10
 GLOBALRATES = [0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 
+def our_lattice_graph(n):
+    root=math.sqrt(n)
+    root=round(root,0)
+    G = grid_2d_graph(int(root),int(root))
+    addInfectionAttributeToGraph(G)
+    return G
 
 def our_barabasi_albert_graph(n, m):
     G = barabasi_albert_graph(n,m)
@@ -36,8 +43,8 @@ def healNode(G,nodeID):
 
 
 def addInfectionAttributeToGraph(G):
-    for x in range(len(G.nodes())):
-        healNode(G,x)
+    for node in G.nodes():
+        healNode(G,node)
         
 def minimal_graph(n):
     if(n<=2):
@@ -166,7 +173,8 @@ def createGraph(graphType,nodesNr):
         return our_barabasi_albert_graph(nodesNr,globalBAedges)
     if graphType == 'erdos-renyi':
         return our_erdos_renyi_graph(nodesNr,globalProb)
-
+    if graphType == 'lattice':
+        return our_lattice_graph(nodesNr)
 
 
 #------------------------------------2nd Part---------------------------------
@@ -394,4 +402,4 @@ def calcThreshold(graph_model):
     return finalThreshold
         
     
-calcThreshold('barabasi-albert')
+calcThreshold('lattice')
