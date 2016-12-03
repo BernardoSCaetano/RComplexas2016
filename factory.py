@@ -314,7 +314,7 @@ def calcThreshold(graph_model,nodesNr):
     liminf=0
     
     for i,fraction in enumerate(fractions):
-        if fraction < 0.1 and fraction > 0.008:
+        if fraction > 0.01:
             limsup=rates[i]
             break
         
