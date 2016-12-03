@@ -65,28 +65,18 @@ def minimal_graph(n):
     addInfectionAttributeToGraph(G)    
     return G
     
+    
+    
+#---The following functions were used in the 1st part; they are irrelevant for the 2nd
+
+
         
 def evalGraph(graph):
-    
-    #iterates over 1000 trials, choose a node at random, choose two of its neighbors at random, and check if they are connected
-    clustCoef = average_clustering(graph) #TODO use average_clustering or clustering function?
-    
-    #degree centrality for a node v is the fraction of nodes it is connected to
-    #degreeCentrality=degree_centrality(graph)
-    
-    
-    #diametro = diameter(graph)                
-    #avgspl = average_shortest_path_length(graph) #TODO same question avg or function
-   
-    #Careful with disconnected graphs
-    
+    clustCoef = average_clustering(graph)  
     dictionary = dict([('cc', clustCoef), ('diameter', 0), ('avgSPL', 0)])
-    
     return dictionary
 
-
-
-        
+ 
 def clusterCoefByDegreeLogLog(graph):
     graus=degree(graph)
     coefs=clustering(graph)
@@ -110,62 +100,12 @@ def clusterCoefByDegree(graph):
     plt.show()    
     
     
-#deprecated    
-def main1():
-    ccs=[]
-    diameters=[]
-    avgSPLs=[]
-    
-    #clusterCoefByDegreeLogLog(createGraph('minimal',100))
-    #clusterCoefByDegreeLogLog(createGraph('minimal',1000))
-    #clusterCoefByDegreeLogLog(createGraph('minimal',10000))
 
-        
-        #diameters.extend(experimentation('minimal',10,100)[1])
-        #avgSPLs.extend(experimentation('minimal',10,100)[1])
-    
-    
-def experimentation(graphType,numberOfGraphs,numberOfNodes):
-    i=0
-    finalDict = dict([('cc',0), ('diameter', 0), ('avgSPL', 0)])
-    
-    while i < numberOfGraphs:
-        graph = createGraph(graphType,numberOfNodes)
-        newDict = evalGraph(graph)
-        
-        newClustCoef = newDict['cc']
-        newDiametro = newDict['diameter']
-        newAvgspl = newDict['avgSPL']
-        
-        oldClustCoef = finalDict['cc']
-        oldDiametro = finalDict['diameter']
-        oldAvgspl = finalDict['avgSPL']
-        
-        sumClustCoef = newClustCoef + oldClustCoef
-        sumDiametro = newDiametro + oldDiametro
-        sumAvgspl =  newAvgspl +  oldAvgspl 
-        
-        finalDict['cc'] = sumClustCoef
-        finalDict['diameter'] = sumDiametro
-        finalDict['avgSPL'] = sumAvgspl
-        
-        i=i+1
-        
-    if finalDict['cc'] != 0:
-        finalDict['cc'] = finalDict['cc']/numberOfGraphs
-        
-    if finalDict['diameter'] != 0:
-        finalDict['diameter'] = finalDict['diameter']/numberOfGraphs
-        
-    if finalDict['avgSPL'] != 0:
-        finalDict['avgSPL'] = finalDict['avgSPL']/numberOfGraphs
+#------------------------------------2nd Part---------------------------------    
 
-    
-    print "AVERAGES::\nClustering coefficient: %f\nDiameter: %f\nAvgShortestPathLength: %f"%(finalDict['cc'],finalDict['diameter'],finalDict['avgSPL'])
-    
-    return [finalDict['cc'],finalDict['diameter'],finalDict['avgSPL']]
- 
-        
+
+
+
 def createGraph(graphType,nodesNr):
     if graphType == 'minimal':
         return minimal_graph(nodesNr)
@@ -177,7 +117,6 @@ def createGraph(graphType,nodesNr):
         return our_lattice_graph(nodesNr)
 
 
-#------------------------------------2nd Part---------------------------------
 
 
 
@@ -273,8 +212,8 @@ def hasStabilized(lista,n):
    
    
 #returns the average fraction of infected after the spreading stabilizes    
-def fractionInfectedAfterStabilizing(graph_model,TransmissionRate):
-    G = createGraph(graph_model,1000)
+def fractionInfectedAfterStabilizing(graph_model,TransmissionRate,nodesNr):
+    G = createGraph(graph_model,nodesNr)
     
     infectedFractions = list()
     infectedFractions.append(0) 
@@ -324,7 +263,6 @@ def collapses(n):
    
    
 
-
 #function to test
 def testOneStepSIS():
     G = createGraph('erdos-renyi',10)
@@ -345,7 +283,7 @@ def testOneStepSI():
 
 
 #returns a pair of lists, cointaining the rates and the experimental(experienceNR times) fraction of infected for each rate
-def infectedFractionByTransmissionRate(graph_model):
+def infectedFractionByTransmissionRate(graph_model,nodesNr):
     rates=GLOBALRATES
     fractionByRate=list()
     averages=list()
@@ -354,7 +292,7 @@ def infectedFractionByTransmissionRate(graph_model):
     for rate in rates:       
         while experiments < EXPERIENCESNR:
             experiments=experiments+1
-            averages.append(fractionInfectedAfterStabilizing(graph_model,rate))
+            averages.append(fractionInfectedAfterStabilizing(graph_model,rate,nodesNr))
             pointInPlot=numpy.mean(averages)
         
         fractionByRate.append(pointInPlot)
@@ -370,8 +308,8 @@ def infectedFractionByTransmissionRate(graph_model):
 
 
 #returns the experimental approximation of the threshold for a given model
-def calcThreshold(graph_model):
-    rates, fractions = infectedFractionByTransmissionRate(graph_model)
+def calcThreshold(graph_model,nodesNr):
+    rates, fractions = infectedFractionByTransmissionRate(graph_model,nodesNr)
     limsup=0
     liminf=0
     
@@ -382,26 +320,62 @@ def calcThreshold(graph_model):
         
     exp=0
     thresholds=list()
+    print "Calculating threshold..."
     while exp < EXPERIENCESNR:
         exp=exp+1
         while abs(liminf-limsup) > 0.0005:
             rateHypothesis = numberBetween(liminf,limsup)
-            fraction = fractionInfectedAfterStabilizing(graph_model,rateHypothesis)
+            fraction = fractionInfectedAfterStabilizing(graph_model,rateHypothesis,nodesNr)
             if collapses(fraction):
                 liminf=rateHypothesis
             if not(collapses(fraction)):
                 limsup=rateHypothesis
-            print "[ "+str(liminf)+" , "+str(limsup)+" ]"
+            #print "[ "+str(liminf)+" , "+str(limsup)+" ]"
         
         threshold=float(limsup+liminf)/2
-        print "threshold: "+ str(threshold)
+        #print "threshold: "+ str(threshold)
         thresholds.append(round(threshold,4))
         limsup=rates[i]
         liminf=0
         
     finalThreshold = round(numpy.mean(thresholds),4)
-    print finalThreshold
+    
     return finalThreshold
         
+def userInterface():
+    print "Press 1 for lattice simulation"    
+    print "Press 2 for Barábasi-Albert simulation"    
+    print "Press 3 for minimal model simulation"
+    print "Press 4 for random network simulation"    
+    print "Press 5 to exit" 
+    model = int(raw_input(""))
     
-calcThreshold('lattice')
+    if model == 5:
+        print "exiting"
+        return
+    
+    if model > 5 or model < 1:
+        userInterface()
+        return
+    
+    print "Now please insert the number of nodes you want your simulation to have"        
+    
+    nodes = int(raw_input(""))
+    
+    print "Simulating..."
+    
+    if model == 1:
+        threshold = calcThreshold('lattice',nodes)
+    if model == 2:
+        threshold = calcThreshold('barabasi-albert',nodes)    
+    if model == 3:
+        threshold = calcThreshold('minimal',nodes)
+    if model == 4:
+        threshold = calcThreshold('lattice',nodes)   
+   
+    
+    
+    print "threshold: " + str(threshold)
+    return
+
+userInterface()
