@@ -128,6 +128,16 @@ def startRandomInfection(graph):
     infectNode(graph,patientZero)
     return graph
 
+def startTargetedInfection(graph):
+    nodes = graph.nodes()
+    highestVal=0
+    highestNode=0
+    for node in nodes:
+        if graph.degree(node) > highestVal:
+            highestVal = graph.degree(node)
+            highestNode = node
+    infectNode(graph,highestNode)
+    return graph
 
 #given a graph, returns a list with the ids of infected nodes
 def getInfectedNodes(graph):
@@ -218,6 +228,7 @@ def fractionInfectedAfterStabilizing(graph_model,TransmissionRate,nodesNr):
     infectedFractions = list()
     infectedFractions.append(0) 
     G = startRandomInfection(G)
+    #G = startTargetedInfection(G)
     infectedFractions.append(getFractionOfInfected(G))
     
     timeline=list()
@@ -371,7 +382,7 @@ def userInterface():
     if model == 3:
         threshold = calcThreshold('minimal',nodes)
     if model == 4:
-        threshold = calcThreshold('lattice',nodes)   
+        threshold = calcThreshold('erdos-renyi',nodes)   
    
     
     
