@@ -19,4 +19,4 @@ You will see a plot on your screen and the corresponding threshold.
 
 Enjoy!
 
-  
+The file contains code from the first delivery and the second delivery. There are methods used in the first delivery that were only used to test the graphs. All the methods used are defined and have a brief description.
