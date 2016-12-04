@@ -11,7 +11,7 @@ By installing NetworkX trough pip you can simulate our experiments. Some of our 
 To run the project, download the source code, go to the directory containing the code, open a terminal window and insert:
 python factory.py
 
-Then you will have to insert wich model u want to simulate, and how many nodes you want the simulation to have.
+Then you will have to insert which model you want to simulate, and how many nodes you want the simulation to have.
 
 You will see a plot on your screen and the corresponding threshold.
 
