@@ -4,10 +4,7 @@ Projecto
 This project was developed in Python, under the OS Ubuntu.
 
 In order to run our project you must have installed the following libraries:
-NetworkX 
-matplotlib
-random 
-numpy
+NetworkX, matplotlib, random, numpy.
 
 By installing NetworkX trough pip you can simulate our experiments. Some of our group members intalled NetworkX using other methods and weren't able to run the project.
 
